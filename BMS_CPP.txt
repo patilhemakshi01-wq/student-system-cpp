@@ -1,0 +1,159 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+class Account {
+public:
+    int accNo;
+    char name[50];
+    float balance;
+
+    void create() {
+        cout << "Enter Account Number: ";
+        cin >> accNo;
+        cout << "Enter Name: ";
+        cin >> name;
+        cout << "Enter Initial Balance: ";
+        cin >> balance;
+    }
+
+    void show() {
+        cout << "\nAccount No: " << accNo;
+        cout << "\nName: " << name;
+        cout << "\nBalance: " << balance << endl;
+    }
+};
+
+void addAccount() {
+    Account a;
+    ofstream file("bank.dat", ios::binary | ios::app);
+
+    a.create();
+    file.write((char*)&a, sizeof(a));
+
+    file.close();
+    cout << "Account Created!\n";
+}
+
+void displayAll() {
+    Account a;
+    ifstream file("bank.dat", ios::binary);
+
+    while (file.read((char*)&a, sizeof(a))) {
+        a.show();
+        cout << "-------------------";
+    }
+
+    file.close();
+}
+
+void searchAccount() {
+    Account a;
+    int no, found = 0;
+
+    cout << "Enter Account Number: ";
+    cin >> no;
+
+    ifstream file("bank.dat", ios::binary);
+
+    while (file.read((char*)&a, sizeof(a))) {
+        if (a.accNo == no) {
+            a.show();
+            found = 1;
+        }
+    }
+
+    file.close();
+
+    if (!found)
+        cout << "Account not found!\n";
+}
+
+void depositMoney() {
+    Account a;
+    int no;
+    float amt;
+
+    cout << "Enter Account Number: ";
+    cin >> no;
+    cout << "Enter Amount to Deposit: ";
+    cin >> amt;
+
+    fstream file("bank.dat", ios::binary | ios::in | ios::out);
+
+    while (file.read((char*)&a, sizeof(a))) {
+        if (a.accNo == no) {
+            a.balance += amt;
+
+            int pos = -1 * sizeof(a);
+            file.seekp(pos, ios::cur);
+            file.write((char*)&a, sizeof(a));
+
+            cout << "Amount Deposited!\n";
+            break;
+        }
+    }
+
+    file.close();
+}
+
+void withdrawMoney() {
+    Account a;
+    int no;
+    float amt;
+
+    cout << "Enter Account Number: ";
+    cin >> no;
+    cout << "Enter Amount to Withdraw: ";
+    cin >> amt;
+
+    fstream file("bank.dat", ios::binary | ios::in | ios::out);
+
+    while (file.read((char*)&a, sizeof(a))) {
+        if (a.accNo == no) {
+            if (a.balance >= amt) {
+                a.balance -= amt;
+
+                int pos = -1 * sizeof(a);
+                file.seekp(pos, ios::cur);
+                file.write((char*)&a, sizeof(a));
+
+                cout << "Amount Withdrawn!\n";
+            } else {
+                cout << "Insufficient Balance!\n";
+            }
+            break;
+        }
+    }
+
+    file.close();
+}
+
+int main() {
+    int ch;
+
+    do {
+        cout << "\n--- Bank Management ---\n";
+        cout << "1. Create Account\n";
+        cout << "2. Display All\n";
+        cout << "3. Search Account\n";
+        cout << "4. Deposit\n";
+        cout << "5. Withdraw\n";
+        cout << "6. Exit\n";
+        cout << "Enter choice: ";
+        cin >> ch;
+
+        switch (ch) {
+            case 1: addAccount(); break;
+            case 2: displayAll(); break;
+            case 3: searchAccount(); break;
+            case 4: depositMoney(); break;
+            case 5: withdrawMoney(); break;
+            case 6: cout << "Exit...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+
+    } while (ch != 6);
+
+    return 0;
+}
